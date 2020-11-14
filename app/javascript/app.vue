@@ -1,22 +1,149 @@
 <template>
   <div id="app">
-    <p>{{ message }}</p>
+    <h1 v-bind:class="{hot: game.turn.hot}">Hot Dice!</h1>
+    <intro v-if="!self.joining" v-bind:self="self" v-on:start-click="joinGame"></intro>
+    <div v-if="self.joining">Joining game...</div>
+    <game v-if="self.slot" v-bind:game="game" v-bind:ownslot="self.slot"
+          v-on:game-delta="shareGameDelta()"></game>
+
+
   </div>
 </template>
 
 <script>
+import Intro from 'intro.vue'
+import Game from 'game.vue'
+import consumer from 'channels/consumer'
+
 export default {
   data: function () {
     return {
-      message: "Hello Vue!"
+      self: {
+        gameCode: 1,
+        name: (Math.floor(Math.random() * 10000) + 1).toString(),
+        joining: false,
+        slot: null
+      },
+      game: {
+        started: false,
+        turn: {
+          slot: null,
+          dice: [
+            {index: 1, val: 1, status: 'fresh'},
+            {index: 2, val: 2, status: 'fresh'},
+            {index: 3, val: 3, status: 'fresh'},
+            {index: 4, val: 4, status: 'fresh'},
+            {index: 5, val: 5, status: 'fresh'},
+            {index: 6, val: 6, status: 'fresh'}
+          ],
+          score: 0,
+          hot: false,
+          farkle: false
+        },
+        breakOut: 100,
+        roster: []
+      },
+      slots: {
+        count: 0,
+        claims: [],
+      },
+      channel: null
     }
-  }
+  },
+  methods: {
+    joinGame: function (event) {
+      let app = this;
+      this.self.joining = true;
+      app.channel = consumer.subscriptions.create({channel: 'GameChannel', game_code: app.self.gameCode}, {
+        connected() {
+          app.sayHello()
+        },
+
+        disconnected() {
+
+        },
+
+        say(data) {
+          data.from = app.self.name;
+          this.perform('say', data);
+        },
+
+        received(data) {
+          app.log(JSON.stringify(data));
+          app.handleUpdate(data);
+        }
+      });
+    },
+    handleUpdate: function(data) {
+      if (data.game) {
+        this.game = data.game;
+      }
+      if (data.slots && data.slots.count) {
+        this.slots.count = Math.max(this.slots.count, data.slots.count);
+      }
+      if (data.slots && data.slots.claims) {
+        this.slots.claims = [...new Set([...this.slots.claims, ...data.slots.claims])];
+      }
+      if (data.hello && data.from != this.self.name && (!this.game.started || this.self.slot == 1)) {
+        this.channel.say({game: this.game, slots: this.slots});
+      }
+    },
+    shareGameDelta: function() {
+      this.channel.say({game: this.game});
+    },
+    sayHello: function() {
+      let app = this;
+      this.log('Saying hello and waiting for game state');
+      this.channel.say({hello: 1});
+      setTimeout(function() { app.claimSlot(); }, 1000);
+    },
+    claimSlot: function() {
+      this.log('Claiming next slot');
+      let app = this;
+      const claims = this.slots.claims;
+      const num = claims.length ? claims.map((c) => c.slot).reduce((a, b) => Math.max(a, b)) + 1 : 1;
+      const assertiveness = Math.random();
+      this.channel.say({
+        slots: {
+          claims: [{slot: num, name: this.self.name, assertiveness}],
+          count: num
+        }
+      });
+      setTimeout(function() { app.checkClaim(num, assertiveness) }, 1000);
+    },
+    checkClaim: function(num, assertiveness) {
+      this.log(`Checking claim ${num}`);
+      let app = this;
+      const competitors = app.slots.claims.filter((c) => (c.slot == num && c.name != app.self.name));
+      const maxAssert = competitors.length ? competitors.reduce((a, b) => Math.max(a.ass, b.slot)) : 0;
+      if (assertiveness > maxAssert) {
+        this.log(`Won slot ${num}`);
+        if (num == 1) {
+          app.game.started = true;
+          app.game.turn.slot = 1;
+        }
+        app.self.slot = num;
+        app.self.joining = false;
+        app.game.roster.push({slot: num, name: app.self.name, score: 0});
+        app.channel.say({game: app.game});
+      } else {
+        this.log(`DIDNT win slot ${num}, retrying`);
+        app.claimSlot();
+      }
+    },
+    log: function(msg) {
+      const now = new Date();
+      const stamp = '' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() +
+        '.' + now.getMilliseconds();
+      console.log(stamp, msg);
+    }
+  },
+  components: { Intro, Game }
 }
 </script>
 
 <style scoped>
-p {
-  font-size: 2em;
-  text-align: center;
-}
+  .hot {
+    color: red;
+  }
 </style>
