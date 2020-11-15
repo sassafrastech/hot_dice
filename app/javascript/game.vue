@@ -6,6 +6,7 @@
           v-bind:break-out="game.breakOut"
           v-bind:board-score="curPlayer.score"
           v-on:roll="$emit('game-delta')"
+          v-on:game-delta="$emit('game-delta')"
           v-on:pass="passTurn"></dice>
     Turn score: {{game.turn.score}}
     <ul>

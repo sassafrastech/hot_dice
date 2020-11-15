@@ -7,7 +7,8 @@
     <button v-if="canRoll" v-on:click="roll()">Roll</button>
     <button v-if="canPass" v-on:click="pass()">Pass</button>
     <br/>
-    Pull Score: {{pullScore}}
+    Pull score: {{pullScore}}
+    {{turn.farkle ? 'FARKLE' : ''}}
   </div>
 </template>
 
@@ -31,7 +32,7 @@ export default {
       return this.ownTurn && (this.firstRoll || this.pullScore > 0);
     },
     canPass: function() {
-      return this.ownTurn && this.brokenOut && this.pullScore > 0;
+      return this.ownTurn && (this.turn.farkle || (this.brokenOut && this.pullScore > 0));
     },
     turnScore: function() {
       return this.turn.score;
@@ -41,7 +42,7 @@ export default {
     },
     pullScore: function() {
       const vals = this.dice.filter((d) => d.status == 'pulled').map((d) => d.val);
-      return this.bestScore(vals);
+      return this.computeScore(vals, 'bestUsingAll');
     },
     allHeld: function() {
       return this.dice.every((d) => d.status == 'held');
@@ -59,7 +60,14 @@ export default {
       }
       this.rollAvailableDice();
       this.firstRoll = false;
-      this.$emit('roll');
+      const freeVals = this.dice.filter((d) => d.status == 'free').map((d) => d.val);
+      console.log(freeVals);
+      console.log(this.computeScore(freeVals, 'firstUsingAny'));
+      if (this.computeScore(freeVals, 'firstUsingAny') == 0) {
+        this.turn.farkle = true;
+        this.turn.score = 0;
+      }
+      this.$emit('game-delta');
     },
     pass: function() {
       this.holdScore();
@@ -75,6 +83,7 @@ export default {
           die.status = 'held';
         }
       });
+      this.$emit('game-delta');
     },
     rollAvailableDice: function() {
       this.dice.forEach((die) => {
@@ -83,9 +92,10 @@ export default {
           die.status = 'free';
         }
       });
+      this.$emit('game-delta');
     },
     resetDice: function() {
-      this.dice.forEach((d) => d.status = 'fresh');
+      this.dice.forEach((d) => (d.status = 'fresh') && (d.val = 1));
     },
     dieClick: function(die) {
       if (die.status == 'held' || die.status == 'fresh') {
@@ -93,56 +103,117 @@ export default {
       } else {
         die.status = die.status == 'pulled' ? 'free' : 'pulled';
       }
+      this.$emit('game-delta');
     },
     holdScore: function() {
       this.turn.score += this.pullScore;
     },
-    bestScore: function(vals) {
-      console.log(vals)
+    // mode can be 'bestUsingAll' or 'firstUsingAny'
+    // return of 0 means no scoring possible
+    computeScore: function(vals, mode) {
       if (vals.length == 0) {
         return 0;
       }
 
-      let possible = [];
-      vals.sort;
+      let hit = null;
+      let done = false;
+      let best = 0;
 
-      const ones = vals.reduce((count, v) => count + (v == 1 ? 1 : 0), 0);
-      const fives = vals.reduce((count, v) => count + (v == 5 ? 1 : 0), 0);
-      console.log(ones, fives);
-      if (ones + fives == vals.length) {
-        possible.push(ones * 100 + fives * 50);
+      let freqHash = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+      vals.forEach((v) => freqHash[v] += 1);
+      let freqStr = Object.values(freqHash).sort().reverse().toString();
+
+      console.log(JSON.stringify(freqHash), freqStr);
+
+      for (let i = 0; true; i += 1) {
+        let freqArray = Object.entries(freqHash).sort((pairA, pairB) => pairA[1] - pairB[1]).reverse();
+        console.log(JSON.stringify(freqArray));
+        switch (i) {
+          case 0: // 6 of a kind
+            if (freqStr == "6,0,0,0,0,0") {
+              hit = 3000;
+              freqArray = [];
+            }
+            break;
+          case 1: // 2 triplets
+            if (freqStr == "3,3,0,0,0,0") {
+              hit = 2500;
+              freqArray = [];
+            }
+            break;
+          case 2: // Straight
+            if (freqStr == "1,1,1,1,1,1") {
+              hit = 1500;
+              freqArray = [];
+            }
+            break;
+          case 3: // 3 pairs
+            if (freqStr == "2,2,2,0,0,0") {
+              hit = 1500;
+              freqArray = [];
+            }
+            break;
+          case 4: // 5 of a kind
+            if (freqArray[0][1] == 5) {
+              hit = 2000;
+              freqArray.shift();
+            }
+            break;
+          case 5: // 4 of a kind
+            if (freqArray[0][1] == 4) {
+              hit = 1000;
+              freqArray.shift();
+            }
+            break;
+          case 6: // 3 of a kind
+            if (freqArray[0][1] == 3) {
+              switch (freqArray[0][0]) {
+                case '1': hit = 1000; break;
+                case '2': hit = 200; break;
+                case '3': hit = 300; break;
+                case '4': hit = 400; break;
+                case '5': hit = 500; break;
+                case '6': hit = 600; break;
+              }
+              freqArray.shift();
+            }
+            break;
+          case 7: // 1 or 2 1's
+            if (freqHash['1'] > 0 && freqHash['1'] <= 2) {
+              hit = freqHash['1'] * 100;
+              freqArray = freqArray.filter((pair) => pair[0] != '1');
+            }
+            break;
+          case 8: // 1 or 2 5's
+            if (freqHash['5'] > 0 && freqHash['5'] <= 2) {
+              hit = freqHash['5'] * 50;
+              freqArray = freqArray.filter((pair) => pair[0] != '5');
+            }
+            break;
+          default:
+            done = true;
+        }
+
+        if (mode == 'firstUsingAny' && hit) {
+          return hit;
+        } else if (mode == 'bestUsingAll' && hit) {
+          console.log("hit", hit, freqArray);
+          let remaining = [];
+          freqArray.forEach((pair) => {
+            remaining = remaining.concat(Array.from({length: pair[1]}, () => parseInt(pair[0])))
+          });
+          console.log(remaining);
+          let extra = this.computeScore(remaining, mode);
+          let full = remaining.length == 0 || extra > 0 ? hit + extra : 0;
+          best = Math.max(best, full);
+        } else if (done) {
+          return best;
+        }
+
+        hit = null;
       }
 
-      const allSame = vals.every((v) => v == vals[0]);
-      if (allSame) {
-        if (vals.length == 3) {
-          switch (vals[0]) {
-            case 1: possible.push(1000); break;
-            case 2: possible.push(200); break;
-            case 3: possible.push(300); break;
-            case 4: possible.push(400); break;
-            case 5: possible.push(500); break;
-            case 6: possible.push(600); break;
-          }
-        } else if (vals.length == 4) {
-          possible.push(1000);
-        } else if (vals.length == 5) {
-          possible.push(2000);
-        } else if (vals.length == 6) {
-          possible.push(3000);
-        }
-      } else if (vals.toString() == "1,2,3,4,5,6") {
-        possible.push(1500);
-      } else if (vals.length == 6) {
-        const left = [vals[0], vals[2], vals[4]];
-        const right = [vals[1], vals[3], vals[5]];
-        const distinct = left[0] != left[1] && left[0] != left[2] && left[1] != left[2];
-        if (left.toString() == right.toString() && distinct) {
-          possible.push(1500);
-        }
-      }
-      console.log(possible);
-      return Math.max(...possible, 0)
+      return 0;
     }
   }
 }

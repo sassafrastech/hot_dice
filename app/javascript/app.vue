@@ -5,8 +5,6 @@
     <div v-if="self.joining">Joining game...</div>
     <game v-if="self.slot" v-bind:game="game" v-bind:ownslot="self.slot"
           v-on:game-delta="shareGameDelta()"></game>
-
-
   </div>
 </template>
 
