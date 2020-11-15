@@ -7,6 +7,7 @@
     <button v-if="canRoll" v-on:click="roll()">Roll</button>
     <button v-if="canPass" v-on:click="pass()">Pass</button>
     <br/>
+    Turn score: {{turn.score}}
     Pull score: {{pullScore}}
     {{turn.farkle ? 'FARKLE' : ''}}
   </div>
@@ -14,7 +15,7 @@
 
 <script>
 export default {
-  props: ['turn', 'ownslot', 'breakOut', 'boardScore'],
+  props: ['turn', 'ownTurn', 'breakOut', 'onTheBoard'],
   data: function() {
     return {
       firstRoll: true,
@@ -24,9 +25,6 @@ export default {
   computed: {
     dice: function() {
       return this.turn.dice;
-    },
-    ownTurn: function() {
-      return this.ownslot == this.turn.slot;
     },
     canRoll: function() {
       return this.ownTurn && (this.firstRoll || this.pullScore > 0);
@@ -38,7 +36,7 @@ export default {
       return this.turn.score;
     },
     brokenOut: function() {
-      return this.boardScore + this.turnScore + this.pullScore >= this.breakOut;
+      return this.onTheBoard || (this.turnScore + this.pullScore >= this.breakOut);
     },
     pullScore: function() {
       const vals = this.dice.filter((d) => d.status == 'pulled').map((d) => d.val);
@@ -61,21 +59,36 @@ export default {
       this.rollAvailableDice();
       this.firstRoll = false;
       const freeVals = this.dice.filter((d) => d.status == 'free').map((d) => d.val);
-      console.log(freeVals);
-      console.log(this.computeScore(freeVals, 'firstUsingAny'));
-      if (this.computeScore(freeVals, 'firstUsingAny') == 0) {
+      console.log('******************************************');
+      console.log('Free vals', freeVals);
+      const freeScore = this.computeScore(freeVals, 'firstUsingAny');
+      console.log('Free score', freeScore);
+      if (freeScore == 0) {
         this.turn.farkle = true;
         this.turn.score = 0;
       }
+      this.printState();
       this.$emit('game-delta');
     },
     pass: function() {
       this.holdScore();
       this.resetDice();
+      const turnScore = this.turn.score;
       this.turn.hot = false;
       this.turn.farkle = false;
+      this.turn.score = 0;
       this.firstRoll = true;
-      this.$emit('pass');
+      this.printState();
+      this.$emit('pass', {turnScore: turnScore});
+    },
+    dieClick: function(die) {
+      if (die.status == 'held' || die.status == 'fresh') {
+        return;
+      } else {
+        die.status = die.status == 'pulled' ? 'free' : 'pulled';
+      }
+      this.printState();
+      this.$emit('game-delta');
     },
     holdPulledDice: function() {
       this.dice.forEach((die) => {
@@ -97,14 +110,6 @@ export default {
     resetDice: function() {
       this.dice.forEach((d) => (d.status = 'fresh') && (d.val = 1));
     },
-    dieClick: function(die) {
-      if (die.status == 'held' || die.status == 'fresh') {
-        return;
-      } else {
-        die.status = die.status == 'pulled' ? 'free' : 'pulled';
-      }
-      this.$emit('game-delta');
-    },
     holdScore: function() {
       this.turn.score += this.pullScore;
     },
@@ -123,11 +128,8 @@ export default {
       vals.forEach((v) => freqHash[v] += 1);
       let freqStr = Object.values(freqHash).sort().reverse().toString();
 
-      console.log(JSON.stringify(freqHash), freqStr);
-
       for (let i = 0; true; i += 1) {
         let freqArray = Object.entries(freqHash).sort((pairA, pairB) => pairA[1] - pairB[1]).reverse();
-        console.log(JSON.stringify(freqArray));
         switch (i) {
           case 0: // 6 of a kind
             if (freqStr == "6,0,0,0,0,0") {
@@ -197,12 +199,10 @@ export default {
         if (mode == 'firstUsingAny' && hit) {
           return hit;
         } else if (mode == 'bestUsingAll' && hit) {
-          console.log("hit", hit, freqArray);
           let remaining = [];
           freqArray.forEach((pair) => {
             remaining = remaining.concat(Array.from({length: pair[1]}, () => parseInt(pair[0])))
           });
-          console.log(remaining);
           let extra = this.computeScore(remaining, mode);
           let full = remaining.length == 0 || extra > 0 ? hit + extra : 0;
           best = Math.max(best, full);
@@ -214,6 +214,21 @@ export default {
       }
 
       return 0;
+    },
+    printState: function() {
+      console.log('******************************************');
+      console.log('ownTurn', this.ownTurn);
+      console.log('breakOut', this.breakOut);
+      console.log('onTheBoard', this.onTheBoard);
+      console.log('hot', this.turn.hot);
+      console.log('farkle', this.turn.farkle);
+      console.log('dice', JSON.stringify(this.dice));
+      console.log('canRoll', this.canRoll);
+      console.log('canPass', this.canPass);
+      console.log('turnScore', this.turnScore);
+      console.log('brokenOut', this.brokenOut);
+      console.log('pullScore', this.pullScore);
+      console.log('allHeld', this.allHeld);
     }
   }
 }

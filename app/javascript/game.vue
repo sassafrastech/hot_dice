@@ -2,13 +2,12 @@
   <div id="game">
     <roster v-bind:roster="game.roster"></roster>
     <dice v-bind:turn="game.turn"
-          v-bind:ownslot="ownslot"
+          v-bind:own-turn="ownTurn"
           v-bind:break-out="game.breakOut"
-          v-bind:board-score="curPlayer.score"
+          v-bind:on-the-board="onTheBoard"
           v-on:roll="$emit('game-delta')"
           v-on:game-delta="$emit('game-delta')"
           v-on:pass="passTurn"></dice>
-    Turn score: {{game.turn.score}}
     <ul>
       <li>ONES : 100</li>
       <li>FIVES : 50</li>
@@ -33,20 +32,25 @@ import Roster from 'roster.vue'
 import Dice from 'dice.vue'
 
 export default {
-  props: ['ownslot', 'game'],
+  props: ['ownSlot', 'game'],
   components: { Roster, Dice },
   computed: {
     curPlayer: function() {
-      return this.game.roster.find((p) => p.slot == this.game.turn.slot);
+      return this.game.roster.find((p) => p.slot == this.game.curSlot);
+    },
+    ownTurn: function() {
+      return this.game.curSlot == this.ownSlot;
+    },
+    onTheBoard: function() {
+      return (this.curPlayer || {score: 0}).score > 0;
     }
   },
   methods: {
-    passTurn: function() {
-      this.curPlayer.score += this.game.turn.score;
-      this.game.turn.score = 0;
-      this.game.turn.slot += 1;
-      if (this.game.turn.slot > this.game.roster.length) {
-        this.game.turn.slot = 1;
+    passTurn: function(e) {
+      this.curPlayer.score += e.turnScore;
+      this.game.curSlot += 1;
+      if (this.game.curSlot > this.game.roster.length) {
+        this.game.curSlot = 1;
       }
       this.$emit('game-delta');
     }

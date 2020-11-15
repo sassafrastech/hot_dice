@@ -3,7 +3,7 @@
     <h1 v-bind:class="{hot: game.turn.hot}">Hot Dice!</h1>
     <intro v-if="!self.joining" v-bind:self="self" v-on:start-click="joinGame"></intro>
     <div v-if="self.joining">Joining game...</div>
-    <game v-if="self.slot" v-bind:game="game" v-bind:ownslot="self.slot"
+    <game v-if="self.slot" v-bind:game="game" v-bind:own-slot="self.slot"
           v-on:game-delta="shareGameDelta()"></game>
   </div>
 </template>
@@ -24,8 +24,8 @@ export default {
       },
       game: {
         started: false,
+        curSlot: null,
         turn: {
-          slot: null,
           dice: [
             {index: 1, val: 1, status: 'fresh'},
             {index: 2, val: 2, status: 'fresh'},
@@ -118,7 +118,7 @@ export default {
         this.log(`Won slot ${num}`);
         if (num == 1) {
           app.game.started = true;
-          app.game.turn.slot = 1;
+          app.game.curSlot = 1;
         }
         app.self.slot = num;
         app.self.joining = false;
@@ -133,7 +133,7 @@ export default {
       const now = new Date();
       const stamp = '' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() +
         '.' + now.getMilliseconds();
-      console.log(stamp, msg);
+      // console.log(stamp, msg);
     }
   },
   components: { Intro, Game }
