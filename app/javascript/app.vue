@@ -28,11 +28,11 @@ export default {
         turn: {
           dice: [
             {index: 1, val: 1, status: 'fresh'},
-            {index: 2, val: 2, status: 'fresh'},
-            {index: 3, val: 3, status: 'fresh'},
-            {index: 4, val: 4, status: 'fresh'},
-            {index: 5, val: 5, status: 'fresh'},
-            {index: 6, val: 6, status: 'fresh'}
+            {index: 2, val: 1, status: 'fresh'},
+            {index: 3, val: 1, status: 'fresh'},
+            {index: 4, val: 1, status: 'fresh'},
+            {index: 5, val: 1, status: 'fresh'},
+            {index: 6, val: 1, status: 'fresh'}
           ],
           score: 0,
           hot: false,
@@ -67,6 +67,7 @@ export default {
         },
 
         received(data) {
+          app.log("*************************** state update");
           app.log(JSON.stringify(data));
           app.handleUpdate(data);
         }
@@ -133,7 +134,7 @@ export default {
       const now = new Date();
       const stamp = '' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() +
         '.' + now.getMilliseconds();
-      // console.log(stamp, msg);
+      console.log(stamp, msg);
     }
   },
   components: { Intro, Game }

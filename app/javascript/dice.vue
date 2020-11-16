@@ -63,9 +63,8 @@ export default {
       console.log('Free vals', freeVals);
       const freeScore = this.computeScore(freeVals, 'firstUsingAny');
       console.log('Free score', freeScore);
-      if (freeScore == 0) {
-        this.turn.farkle = true;
-        this.turn.score = 0;
+      if (freeScore === 0) {
+        setTimeout(this.showFarkle.bind(this), 1000);
       }
       this.printState();
       this.$emit('game-delta');
@@ -81,7 +80,16 @@ export default {
       this.printState();
       this.$emit('pass', {turnScore: turnScore});
     },
+    showFarkle: function() {
+      this.turn.farkle = true;
+      this.turn.score = 0;
+      this.printState();
+      this.$emit('game-delta');
+    },
     dieClick: function(die) {
+      if (!this.ownTurn) {
+        return;
+      }
       if (die.status == 'held' || die.status == 'fresh') {
         return;
       } else {
@@ -96,7 +104,6 @@ export default {
           die.status = 'held';
         }
       });
-      this.$emit('game-delta');
     },
     rollAvailableDice: function() {
       this.dice.forEach((die) => {
@@ -105,7 +112,6 @@ export default {
           die.status = 'free';
         }
       });
-      this.$emit('game-delta');
     },
     resetDice: function() {
       this.dice.forEach((d) => (d.status = 'fresh') && (d.val = 1));

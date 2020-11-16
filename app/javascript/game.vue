@@ -1,6 +1,7 @@
 <template>
   <div id="game">
-    <roster v-bind:roster="game.roster"></roster>
+    <roster v-bind:roster="game.roster"
+            v-bind:cur-slot="game.curSlot"></roster>
     <dice v-bind:turn="game.turn"
           v-bind:own-turn="ownTurn"
           v-bind:break-out="game.breakOut"
