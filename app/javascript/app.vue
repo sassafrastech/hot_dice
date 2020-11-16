@@ -38,7 +38,7 @@ export default {
           hot: false,
           farkle: false
         },
-        breakOut: 100,
+        breakOut: 500,
         roster: []
       },
       slots: {
