@@ -4,12 +4,13 @@
       <span v-bind:class="['die', die.status]" v-html="glyphs[die.val - 1]"
             v-on:click="dieClick(die)"></span>
     </div>
-    <button v-if="canRoll" v-on:click="roll()">Roll</button>
-    <button v-if="canPass" v-on:click="pass()">Pass</button>
-    <br/>
+    <div v-if="ownTurn">
+      <button v-bind:disabled="!canRoll" v-on:click="roll()">Roll</button>
+      <button v-bind:disabled="!canPass" v-on:click="pass()">Pass</button>
+    </div>
     Turn score: {{turn.score}}
     Pull score: {{pullScore}}
-    {{turn.farkle ? 'FARKLE' : ''}}
+    {{turn.farkle ? 'FARKLE!' : ''}}
   </div>
 </template>
 

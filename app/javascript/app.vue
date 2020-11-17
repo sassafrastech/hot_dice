@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h1 v-bind:class="{hot: game.turn.hot}">Hot Dice!</h1>
-    <intro v-if="!self.joining" v-bind:self="self" v-on:start-click="joinGame"></intro>
+    <intro v-if="self.fresh" v-bind:self="self" v-on:start-click="joinGame"></intro>
     <div v-if="self.joining">Joining game...</div>
     <game v-if="self.slot" v-bind:game="game" v-bind:own-slot="self.slot"
           v-on:game-delta="shareGameDelta()"></game>
@@ -17,10 +17,12 @@ export default {
   data: function () {
     return {
       self: {
-        gameCode: 1,
-        name: (Math.floor(Math.random() * 10000) + 1).toString(),
+        gameCode: null,
+        name: '',
         joining: false,
-        slot: null
+        fresh: true,
+        slot: null,
+        saidHello: false
       },
       game: {
         started: false,
@@ -52,9 +54,13 @@ export default {
     joinGame: function (event) {
       let app = this;
       this.self.joining = true;
+      this.self.fresh = false;
       app.channel = consumer.subscriptions.create({channel: 'GameChannel', game_code: app.self.gameCode}, {
         connected() {
-          app.sayHello()
+          if (!app.self.saidHello) {
+            app.self.saidHello = true;
+            app.sayHello();
+          }
         },
 
         disconnected() {
