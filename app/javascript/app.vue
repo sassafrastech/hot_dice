@@ -87,7 +87,8 @@ export default {
         this.slots.count = Math.max(this.slots.count, data.slots.count);
       }
       if (data.slots && data.slots.claims) {
-        this.slots.claims = [...new Set([...this.slots.claims, ...data.slots.claims])];
+        let claims = this.slots.claims.concat(data.slots.claims);
+        this.slots.claims = [...new Map(claims.map(c => [`${c.slot},${c.name}`, c])).values()];
       }
       if (data.hello && data.from != this.self.name && (!this.game.started || this.self.slot == 1)) {
         this.channel.say({game: this.game, slots: this.slots});
