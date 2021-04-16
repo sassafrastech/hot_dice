@@ -31,7 +31,7 @@ export default {
       return this.ownTurn && (this.firstRoll || this.pullScore > 0);
     },
     canPass: function() {
-      return this.ownTurn && (this.turn.farkle || (this.brokenOut && this.pullScore > 0));
+      return this.ownTurn && (this.brokenOut && this.pullScore > 0);
     },
     turnScore: function() {
       return this.turn.score;
@@ -86,6 +86,7 @@ export default {
       this.turn.score = 0;
       this.printState();
       this.$emit('game-delta');
+      setTimeout(this.pass.bind(this), 2000);
     },
     dieClick: function(die) {
       if (!this.ownTurn) {
