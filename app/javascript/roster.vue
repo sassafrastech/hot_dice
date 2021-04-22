@@ -1,10 +1,8 @@
 <template>
   <div id="roster">
-    <ul>
-      <li v-for="player in roster" :key="player.name" v-bind:class="{active: curSlot == player.slot}">
-        {{ player.name }}: {{ player.score }}
-      </li>
-    </ul>
+    <div v-for="player in roster" :key="player.name" v-bind:class="{active: curSlot == player.slot}">
+      {{ player.name }} {{ player.score }}
+    </div>
   </div>
 </template>
 

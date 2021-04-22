@@ -1,3 +1,72 @@
 // Place all the styles related to the game controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: https://sass-lang.com/
+
+body {
+  padding: 0;
+  font-family: Arial;
+}
+
+#app {
+  max-width: 300px;
+  margin: auto;
+  border: 2px solid black;
+  padding: 10px 20px;
+  min-height: 500px;
+}
+
+h1 {
+  text-align: center;
+  margin: 0 0 15px 0;
+}
+
+h1.hot {
+  color: orangered;
+}
+
+h1.farkle {
+  color: brown;
+}
+
+#roster {
+  columns: 2;
+  margin-bottom: 10px;
+}
+
+#faces {
+  display: flex;
+  height: 80px;
+  justify-content: space-between;
+
+  .die {
+    font-size: 40px;
+    display: block;
+  }
+
+  .die.pulled, .die.held {
+    margin-top: 30px;
+  }
+
+  .die.free, .die.pulled {
+    cursor: pointer;
+  }
+}
+
+#turn-score {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+#buttons {
+  text-align: center;
+  margin: 10px;
+
+  button {
+    width: 50px;
+    height: 25px;
+    background-color: white;
+    border-radius: 0;
+    border: 2px solid black;
+  }
+}

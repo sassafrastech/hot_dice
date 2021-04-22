@@ -1,16 +1,20 @@
 <template>
   <div id="dice">
-    <div v-for="die in dice" :key="die.index">
-      <span v-bind:class="['die', die.status]" v-html="glyphs[die.val - 1]"
-            v-on:click="dieClick(die)"></span>
+    <div id="faces">
+      <div v-for="die in dice" :key="die.index">
+        <span v-bind:class="['die', die.status]" v-html="glyphs[die.val - 1]"
+              v-on:click="dieClick(die)"></span>
+      </div>
     </div>
-    <div v-if="ownTurn">
-      <button v-bind:disabled="!canRoll" v-on:click="roll()">Roll</button>
-      <button v-bind:disabled="!canPass" v-on:click="pass()">Pass</button>
+    <div id="turn-score">
+      {{turn.score + pullScore}}
     </div>
-    Turn score: {{turn.score}}
-    Pull score: {{pullScore}}
-    {{turn.farkle ? 'FARKLE!' : ''}}
+    <div id="buttons">
+      <div v-if="ownTurn">
+        <button v-bind:disabled="!canRoll" v-on:click="roll()">Roll</button>
+        <button v-bind:disabled="!canPass" v-on:click="pass()">Pass</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -241,17 +245,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-  .die {
-    font-size: 40px;
-  }
-
-  .die.pulled, .die.held {
-    margin-left: 50px;
-  }
-
-  .die.free, .die.pulled {
-    cursor: pointer;
-  }
-</style>

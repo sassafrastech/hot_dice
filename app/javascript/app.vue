@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <h1 v-bind:class="{hot: game.turn.hot}">Hot Dice!</h1>
+    <h1 class="main" v-if="!game.turn.farkle" v-bind:class="{hot: game.turn.hot}">Hot Dice!</h1>
+    <h1 class="farkle" v-if="game.turn.farkle">Farkle!</h1>
     <intro v-if="self.fresh" v-bind:self="self" v-on:start-click="joinGame"></intro>
     <div v-if="self.joining">Joining game...</div>
     <game v-if="self.slot" v-bind:game="game" v-bind:own-slot="self.slot"
@@ -147,9 +148,3 @@ export default {
   components: { Intro, Game }
 }
 </script>
-
-<style scoped>
-  .hot {
-    color: red;
-  }
-</style>
