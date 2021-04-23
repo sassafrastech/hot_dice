@@ -12,7 +12,7 @@ body {
   margin: auto;
   border: 2px solid black;
   padding: 10px 20px;
-  min-height: 500px;
+  min-height: 300px;
 }
 
 h1 {
@@ -69,4 +69,10 @@ h1.farkle {
     border-radius: 0;
     border: 2px solid black;
   }
+}
+
+#legend {
+  margin-top: 20px;
+  columns: 2;
+  font-size: 0.9rem;
 }

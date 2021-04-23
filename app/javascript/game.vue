@@ -10,22 +10,20 @@
           v-on:game-delta="$emit('game-delta')"
           v-on:pass="passTurn"></dice>
     <div id="legend">
-      <ul>
-        <li>ONES: 100</li>
-        <li>FIVES: 50</li>
-        <li>3 ONES: 1000</li>
-        <li>3 TWOS: 200</li>
-        <li>3 THREES: 300</li>
-        <li>3 FOURS: 400</li>
-        <li>3 FIVES: 500</li>
-        <li>3 SIXES: 600</li>
-        <li>3 PAIRS: 1500</li>
-        <li>2 TRIPLETS: 2500</li>
-        <li>4 OF A KIND: 1000</li>
-        <li>5 OF A KIND: 2000</li>
-        <li>6 OF A KIND: 3000</li>
-        <li>STRAIGHT: 1500</li>
-      </ul>
+      <div>Ones: 100</div>
+      <div>Fives: 50</div>
+      <div>3 Ones: 1000</div>
+      <div>3 Twos: 200</div>
+      <div>3 Threes: 300</div>
+      <div>3 Fours: 400</div>
+      <div>3 Fives: 500</div>
+      <div>3 Sixes: 600</div>
+      <div>3 Pairs: 1500</div>
+      <div>2 Triplets: 2500</div>
+      <div>4 of a Kind: 1000</div>
+      <div>5 of a Kind: 2000</div>
+      <div>6 of a Kind: 3000</div>
+      <div>Straight: 1500</div>
     </div>
   </div>
 </template>
