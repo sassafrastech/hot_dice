@@ -145,7 +145,7 @@ export default {
         switch (i) {
           case 0: // 6 of a kind
             if (freqStr == "6,0,0,0,0,0") {
-              hit = 3000;
+              hit = 6000;
               freqArray = [];
             }
             break;
@@ -163,19 +163,19 @@ export default {
             break;
           case 3: // 3 pairs
             if (freqStr == "2,2,2,0,0,0") {
-              hit = 1500;
+              hit = 1250;
               freqArray = [];
             }
             break;
           case 4: // 5 of a kind
             if (freqArray[0][1] == 5) {
-              hit = 2000;
+              hit = 3000;
               freqArray.shift();
             }
             break;
           case 5: // 4 of a kind
             if (freqArray[0][1] == 4) {
-              hit = 1000;
+              hit = 1100;
               freqArray.shift();
             }
             break;

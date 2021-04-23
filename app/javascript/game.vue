@@ -18,11 +18,11 @@
       <div>3 Fours: 400</div>
       <div>3 Fives: 500</div>
       <div>3 Sixes: 600</div>
-      <div>3 Pairs: 1500</div>
+      <div>3 Pairs: 1250</div>
       <div>2 Triplets: 2500</div>
-      <div>4 of a Kind: 1000</div>
-      <div>5 of a Kind: 2000</div>
-      <div>6 of a Kind: 3000</div>
+      <div>4 of a Kind: 1100</div>
+      <div>5 of a Kind: 3000</div>
+      <div>6 of a Kind: 6000</div>
       <div>Straight: 1500</div>
     </div>
   </div>
